@@ -8,6 +8,7 @@ struct PhysicsCategory {
     static let playerProjectile: UInt32 = 0x1 << 2
     static let enemyProjectile: UInt32 = 0x1 << 3
     static let boundary: UInt32 = 0x1 << 4
+    static let powerUp: UInt32 = 0x1 << 5
 }
 
 // MARK: - CGPoint Extensions

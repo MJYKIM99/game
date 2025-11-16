@@ -4,10 +4,11 @@ import SpriteKit
 class GameScene: SKScene {
 
     // MARK: - Game Properties
-    private var player: Player!
+    private(set) var player: Player!
     private var enemies: [Enemy] = []
     private var playerProjectiles: [Projectile] = []
     private var enemyProjectiles: [Projectile] = []
+    private var powerUps: [PowerUpEntity] = []
 
     // Game timing
     private var lastEnemySpawn: TimeInterval = 0
@@ -18,6 +19,9 @@ class GameScene: SKScene {
     // Game state
     private var isGameRunning = false
     private var joystickDirection: CGPoint = .zero
+
+    // Managers
+    private var powerUpSpawner: PowerUpSpawner?
 
     weak var gameManager: GameManager?
 
@@ -41,6 +45,9 @@ class GameScene: SKScene {
         // 设置物理世界
         physicsWorld.gravity = .zero
         physicsWorld.contactDelegate = self
+
+        // 初始化道具生成器
+        powerUpSpawner = PowerUpSpawner(gameScene: self)
 
         print("GameScene setup complete, size: \(size)")
     }
@@ -77,6 +84,12 @@ class GameScene: SKScene {
         player.position = centerPosition
         addChild(player)
 
+        // 设置道具效果管理器
+        if let gameManager = gameManager {
+            // 通过反射或公共方法设置PowerUpEffectManager的引用
+            // 暂时先不设置，在GameManager中处理
+        }
+
         print("Player created at position: \(centerPosition)")
         print("Player children count: \(player.children.count)")
 
@@ -100,6 +113,9 @@ class GameScene: SKScene {
 
         // 敌人射击
         enemyShootIfNeeded(currentTime: currentTime)
+
+        // 更新道具生成器
+        powerUpSpawner?.update(currentTime: currentTime)
 
         // 更新所有游戏对象
         updateGameObjects()
@@ -234,6 +250,15 @@ class GameScene: SKScene {
             }
             return true
         }
+
+        // 移除超出屏幕范围的道具
+        powerUps = powerUps.filter { powerUp in
+            if !isInBounds(powerUp.position) {
+                powerUp.disappear()
+                return false
+            }
+            return true
+        }
     }
 
     private func isInBounds(_ position: CGPoint) -> Bool {
@@ -290,12 +315,21 @@ class GameScene: SKScene {
         }
         enemyProjectiles.removeAll()
 
+        // 清除所有道具
+        for powerUp in powerUps {
+            powerUp.removeFromParent()
+        }
+        powerUps.removeAll()
+
         // 重置游戏参数
         enemySpawnInterval = 2.0
         enemyShotInterval = 1.5
         lastEnemySpawn = 0
         lastEnemyShot = 0
         joystickDirection = .zero
+
+        // 重置道具生成器
+        powerUpSpawner?.reset()
 
         // 重置玩家
         player?.reset()
@@ -329,7 +363,11 @@ extension GameScene: SKPhysicsContactDelegate {
 
             if collision.containsEnemy() && collision.containsPlayerProjectile() {
                 // 敌人被击中
-                collision.enemy?.takeDamage()
+                let damageMultiplier = self.gameManager?.getPlayerDamageMultiplier() ?? 1.0
+                let baseDamage = 20
+                let modifiedDamage = Int(Float(baseDamage) * damageMultiplier)
+
+                collision.enemy?.takeDamage(damage: modifiedDamage)
                 collision.playerProjectile?.removeFromParent()
                 self.playerProjectiles.removeAll { $0 == collision.playerProjectile }
 
@@ -339,6 +377,16 @@ extension GameScene: SKPhysicsContactDelegate {
                     self.enemies.removeAll { $0 == collision.enemy }
 
                     self.gameManager?.enemyDestroyed()
+                }
+            }
+
+            if collision.containsPlayer() && collision.containsPowerUp() {
+                // 玩家收集道具
+                if let powerUp = collision.powerUp {
+                    self.gameManager?.powerUpCollected(powerUp.type)
+                    powerUp.collectEffect()
+                    powerUp.removeFromParent()
+                    self.powerUps.removeAll { $0 == powerUp }
                 }
             }
         }

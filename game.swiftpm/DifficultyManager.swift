@@ -112,7 +112,8 @@ class DifficultyManager: ObservableObject {
         let levelMultiplier = currentLevel
 
         // Speed bonus (faster enemies worth more)
-        let speedBonus = Int(enemy.position.distance(to: .zero)) / 10
+        let enemyPosition = enemy.position
+        let speedBonus = Int(enemyPosition.distance(to: CGPoint.zero)) / 10
 
         // Combo potential (could be expanded)
         let comboMultiplier = min(3.0, 1.0 + Double(enemiesDestroyed % 10) * 0.1)

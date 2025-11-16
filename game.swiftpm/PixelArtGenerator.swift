@@ -1,6 +1,7 @@
 import SpriteKit
 import UIKit
 
+@MainActor
 class PixelArtGenerator {
 
     // MARK: - Pixel Art Constants
@@ -279,6 +280,7 @@ class PixelArtGenerator {
 }
 
 // MARK: - Visual Effects Manager
+@MainActor
 class VisualEffectsManager {
 
     static func applyRetroEffects(to node: SKNode) {

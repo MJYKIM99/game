@@ -125,7 +125,11 @@ class Enemy: SKNode {
 
     // MARK: - Game Logic
     func takeDamage() {
-        health -= 20
+        takeDamage(damage: 20)
+    }
+
+    func takeDamage(damage: Int) {
+        health -= damage
 
         // 播放被击中动画
         if let hitAnimation = hitAnimation {

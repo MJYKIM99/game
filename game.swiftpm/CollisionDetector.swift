@@ -20,11 +20,15 @@ class CollisionDetector {
         let enemyProjectileNode = bodyA.categoryBitMask == PhysicsCategory.enemyProjectile ? bodyA.node :
                                  bodyB.categoryBitMask == PhysicsCategory.enemyProjectile ? bodyB.node : nil
 
+        let powerUpNode = bodyA.categoryBitMask == PhysicsCategory.powerUp ? bodyA.node :
+                          bodyB.categoryBitMask == PhysicsCategory.powerUp ? bodyB.node : nil
+
         return Collision(
             player: playerNode as? Player,
             enemy: enemyNode as? Enemy,
             playerProjectile: playerProjectileNode as? Projectile,
-            enemyProjectile: enemyProjectileNode as? Projectile
+            enemyProjectile: enemyProjectileNode as? Projectile,
+            powerUp: powerUpNode as? PowerUpEntity
         )
     }
 }
@@ -37,10 +41,11 @@ struct Collision {
     let enemy: Enemy?
     let playerProjectile: Projectile?
     let enemyProjectile: Projectile?
+    let powerUp: PowerUpEntity?
 
     // MARK: - Convenience Properties
     var hasValidCollision: Bool {
-        return player != nil || enemy != nil || playerProjectile != nil || enemyProjectile != nil
+        return player != nil || enemy != nil || playerProjectile != nil || enemyProjectile != nil || powerUp != nil
     }
 
     // MARK: - Collision Type Checks
@@ -60,6 +65,10 @@ struct Collision {
         return enemyProjectile != nil
     }
 
+    func containsPowerUp() -> Bool {
+        return powerUp != nil
+    }
+
     // MARK: - Specific Collision Scenarios
     func isPlayerHitByEnemyProjectile() -> Bool {
         return player != nil && enemyProjectile != nil
@@ -77,6 +86,10 @@ struct Collision {
         return playerProjectile != nil && enemyProjectile != nil
     }
 
+    func isPlayerCollectsPowerUp() -> Bool {
+        return player != nil && powerUp != nil
+    }
+
     // MARK: - Debug Information
     func getCollisionDescription() -> String {
         var description = "Collision: "
@@ -86,6 +99,7 @@ struct Collision {
         if enemy != nil { components.append("Enemy") }
         if playerProjectile != nil { components.append("Player Projectile") }
         if enemyProjectile != nil { components.append("Enemy Projectile") }
+        if powerUp != nil { components.append("PowerUp") }
 
         if components.isEmpty {
             description += "Unknown"
@@ -115,6 +129,8 @@ extension CollisionDetector {
             createProjectileImpactEffect(parent: effectNode)
         case .shieldHit:
             createShieldHitEffect(parent: effectNode)
+        case .powerUpCollect:
+            createPowerUpCollectEffect(parent: effectNode)
         }
 
         return effectNode
@@ -201,6 +217,66 @@ extension CollisionDetector {
         createSparkEffect(parent: parent, particleCount: 6, color: .blue)
     }
 
+    private static func createPowerUpCollectEffect(parent: SKNode) {
+        // 彩色收集效果
+        let ring1 = SKShapeNode(circleOfRadius: 10)
+        ring1.fillColor = .clear
+        ring1.strokeColor = .yellow
+        ring1.lineWidth = 2
+        ring1.alpha = 0.9
+
+        let ring2 = SKShapeNode(circleOfRadius: 15)
+        ring2.fillColor = .clear
+        ring2.strokeColor = .orange
+        ring2.lineWidth = 2
+        ring2.alpha = 0.7
+
+        let ring3 = SKShapeNode(circleOfRadius: 20)
+        ring3.fillColor = .clear
+        ring3.strokeColor = .red
+        ring3.lineWidth = 2
+        ring3.alpha = 0.5
+
+        let expandAnimation = SKAction.sequence([
+            SKAction.scale(to: 3.0, duration: 0.6),
+            SKAction.fadeOut(withDuration: 0.4),
+            SKAction.removeFromParent()
+        ])
+
+        parent.addChild(ring1)
+        parent.addChild(ring2)
+        parent.addChild(ring3)
+
+        ring1.run(expandAnimation)
+        ring2.run(SKAction.sequence([SKAction.wait(forDuration: 0.1), expandAnimation]))
+        ring3.run(SKAction.sequence([SKAction.wait(forDuration: 0.2), expandAnimation]))
+
+        // 彩色粒子爆发
+        let colors: [SKColor] = [.yellow, .orange, .red, .green, .blue]
+        for i in 0..<20 {
+            let particle = SKShapeNode(circleOfRadius: 3)
+            particle.fillColor = colors.randomElement() ?? .yellow
+            particle.strokeColor = .clear
+            particle.alpha = 1.0
+
+            let angle = CGFloat(i) * CGFloat.pi * 2.0 / 20.0
+            let distance = CGFloat.random(in: 20...50)
+            let targetPosition = CGPoint(
+                x: cos(angle) * distance,
+                y: sin(angle) * distance
+            )
+
+            let particleAnimation = SKAction.sequence([
+                SKAction.move(to: targetPosition, duration: 0.8),
+                SKAction.fadeOut(withDuration: 0.4),
+                SKAction.removeFromParent()
+            ])
+
+            particle.run(particleAnimation)
+            parent.addChild(particle)
+        }
+    }
+
     private static func createSparkEffect(parent: SKNode, particleCount: Int, color: SKColor) {
         for i in 0..<particleCount {
             let spark = SKShapeNode(circleOfRadius: 2)
@@ -234,6 +310,7 @@ enum CollisionType {
     case enemyHit
     case projectileImpact
     case shieldHit
+    case powerUpCollect
 }
 
 // MARK: - Physics Extensions

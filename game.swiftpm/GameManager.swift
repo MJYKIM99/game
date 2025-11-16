@@ -22,6 +22,7 @@ class GameManager: ObservableObject {
 
     // Managers
     private let difficultyManager = DifficultyManager()
+    private var powerUpEffectManager: PowerUpEffectManager?
 
     // MARK: - Initialization
     init() {
@@ -33,6 +34,12 @@ class GameManager: ObservableObject {
     private func setupGame() {
         gameScene.gameManager = self
         setupNotificationObservers()
+        setupPowerUpSystem()
+    }
+
+    private func setupPowerUpSystem() {
+        powerUpEffectManager = PowerUpEffectManager()
+        // 引用将在startGame中设置
     }
 
     private func setupNotificationObservers() {
@@ -57,6 +64,11 @@ class GameManager: ObservableObject {
         isGameRunning = true
         isGameOver = false
         isPaused = false
+
+        // 设置道具效果管理器的引用
+        if let player = gameScene.player {
+            powerUpEffectManager?.setupReferences(player: player, gameManager: self)
+        }
 
         gameScene.startGame()
 
@@ -112,6 +124,7 @@ class GameManager: ObservableObject {
         isPaused = false
 
         difficultyManager.resetDifficulty()
+        powerUpEffectManager?.reset()
         gameScene.resetGame()
 
         print("Game Reset")
@@ -136,6 +149,23 @@ class GameManager: ObservableObject {
         }
 
         print("Player Health: \(playerHealth)")
+    }
+
+    func powerUpCollected(_ type: PowerUpType) {
+        powerUpEffectManager?.applyPowerUp(type)
+        print("Power-up collected: \(type.displayName)")
+    }
+
+    func getPlayerDamageMultiplier() -> Float {
+        return powerUpEffectManager?.getProjectileDamageMultiplier() ?? 1.0
+    }
+
+    func getPlayerFireRateMultiplier() -> Float {
+        return powerUpEffectManager?.getFireRateMultiplier() ?? 1.0
+    }
+
+    func modifyIncomingDamage(_ damage: Int) -> Int {
+        return powerUpEffectManager?.modifyDamage(incomingDamage: damage) ?? damage
     }
 
     func handleJoystickInput(_ joystickData: JoystickData) {

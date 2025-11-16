@@ -111,7 +111,11 @@ class Player: SKNode {
 
     // MARK: - Game Logic
     func takeDamage() {
-        health -= 20
+        takeDamage(amount: 20)
+    }
+
+    func takeDamage(amount: Int) {
+        health -= amount
 
         // 播放被击中动画
         if let hitAnimation = hitAnimation {
@@ -132,6 +136,17 @@ class Player: SKNode {
             let damageEffect = createDamageEffect()
             addChild(damageEffect)
         }
+    }
+
+    func heal(amount: Int) {
+        health = min(maxHealth, health + amount)
+
+        // 创建治疗动画
+        let healAnimation = SKAction.sequence([
+            SKAction.colorize(with: .green, colorBlendFactor: 0.5, duration: 0.2),
+            SKAction.colorize(with: .clear, colorBlendFactor: 0.0, duration: 0.3)
+        ])
+        shipBody.run(healAnimation)
     }
 
     private func createDamageEffect() -> SKNode {
