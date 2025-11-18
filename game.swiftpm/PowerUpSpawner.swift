@@ -14,41 +14,9 @@ class PowerUpSpawner {
     private let maxSpawnInterval: TimeInterval = 12.0
     private var difficultyMultiplier: Float = 1.0
 
-    // Spawn zones
-    private var spawnZones: [CGRect] = []
-
     // MARK: - Initialization
     init(gameScene: GameScene) {
         self.gameScene = gameScene
-        setupSpawnZones()
-    }
-
-    private func setupSpawnZones() {
-        guard let scene = gameScene else { return }
-
-        let margin: CGFloat = 50
-        let zoneWidth: CGFloat = 150
-        let zoneHeight: CGFloat = 150
-        let sceneSize = scene.size
-
-        // Create spawn zones in different areas of the screen
-        spawnZones = [
-            // Top-left zone
-            CGRect(x: margin, y: sceneSize.height - margin - zoneHeight,
-                   width: zoneWidth, height: zoneHeight),
-            // Top-right zone
-            CGRect(x: sceneSize.width - margin - zoneWidth, y: sceneSize.height - margin - zoneHeight,
-                   width: zoneWidth, height: zoneHeight),
-            // Bottom-left zone
-            CGRect(x: margin, y: margin, width: zoneWidth, height: zoneHeight),
-            // Bottom-right zone
-            CGRect(x: sceneSize.width - margin - zoneWidth, y: margin,
-                   width: zoneWidth, height: zoneHeight),
-            // Center zones
-            CGRect(x: margin, y: sceneSize.height/2 - zoneHeight/2, width: zoneWidth, height: zoneHeight),
-            CGRect(x: sceneSize.width - margin - zoneWidth, y: sceneSize.height/2 - zoneHeight/2,
-                   width: zoneWidth, height: zoneHeight)
-        ]
     }
 
     // MARK: - Spawning Logic
@@ -115,18 +83,32 @@ class PowerUpSpawner {
     }
 
     private func chooseSpawnLocation() -> CGPoint {
-        guard let scene = gameScene else { return .zero }
+        guard let scene = gameScene, let player = scene.player else { return .zero }
 
-        // Choose a random spawn zone
-        let selectedZone = spawnZones.randomElement() ?? spawnZones.first!
+        // Get player position
+        let playerPosition = player.position
 
-        // Choose random position within the zone
-        let x = CGFloat.random(in: selectedZone.minX...selectedZone.maxX)
-        let y = CGFloat.random(in: selectedZone.minY...selectedZone.maxY)
+        // Define distance range from player (not too close, not too far)
+        // Values chosen to make power-ups reachable but not right on top of player
+        let minDistanceFromPlayer: CGFloat = 150  // Minimum 150 points
+        let maxDistanceFromPlayer: CGFloat = 400  // Maximum 400 points
 
-        // Ensure position is within scene bounds
-        let clampedX = max(20, min(scene.size.width - 20, x))
-        let clampedY = max(20, min(scene.size.height - 20, y))
+        // Generate random angle (0 to 2π)
+        let randomAngle = CGFloat.random(in: 0...(2 * .pi))
+
+        // Generate random distance within range
+        let distance = CGFloat.random(in: minDistanceFromPlayer...maxDistanceFromPlayer)
+
+        // Calculate potential spawn position using polar coordinates
+        let potentialX = playerPosition.x + cos(randomAngle) * distance
+        let potentialY = playerPosition.y + sin(randomAngle) * distance
+
+        // Create margins from screen edges
+        let margin: CGFloat = 50
+
+        // Ensure position is within scene bounds with margins
+        let clampedX = max(margin, min(scene.size.width - margin, potentialX))
+        let clampedY = max(margin, min(scene.size.height - margin, potentialY))
 
         return CGPoint(x: clampedX, y: clampedY)
     }
@@ -157,18 +139,12 @@ class PowerUpSpawner {
         // Resuming logic handled by game scene
     }
 
-    // MARK: - Spawn Zone Management
-    func updateSpawnZones() {
-        setupSpawnZones()
-    }
-
     // MARK: - Debug Methods
     func getSpawnInfo() -> [String: Any] {
         return [
             "lastSpawnTime": lastSpawnTime,
             "spawnInterval": spawnInterval,
-            "difficultyMultiplier": difficultyMultiplier,
-            "spawnZoneCount": spawnZones.count
+            "difficultyMultiplier": difficultyMultiplier
         ]
     }
 
