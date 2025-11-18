@@ -276,20 +276,24 @@ class GameScene: SKScene {
     }
 
     func playerShoot(at targetPoint: CGPoint) {
-        print("[DEBUG] GameScene.playerShoot called\n  - Target Point: \(targetPoint)")
+        print("[DEBUG] GameScene.playerShoot called\n  - Target Point (UI coords): \(targetPoint)")
         guard let player = player else {
             print("[DEBUG] Player is nil, cannot shoot")
             return
         }
 
-        print("[DEBUG] Player position: \(player.position)")
+        print("[DEBUG] Player position (scene coords): \(player.position)")
+
+        // Convert UI coordinates to scene coordinates
+        let sceneTargetPoint = convertUIToSceneCoordinates(uiPoint: targetPoint)
+        print("[DEBUG] Converted to scene coords: \(sceneTargetPoint)")
 
         let projectile = Projectile(isPlayerProjectile: true)
         projectile.position = player.position
 
         // 计算射击方向
-        let direction = CGPoint(x: targetPoint.x - player.position.x,
-                              y: targetPoint.y - player.position.y)
+        let direction = CGPoint(x: sceneTargetPoint.x - player.position.x,
+                              y: sceneTargetPoint.y - player.position.y)
         let normalizedDirection = direction.normalized()
 
         print("[DEBUG] Direction vector: \(direction)\n  - Normalized: \(normalizedDirection)")
@@ -299,6 +303,15 @@ class GameScene: SKScene {
         playerProjectiles.append(projectile)
 
         print("[DEBUG] Projectile created and added! Total player projectiles: \(playerProjectiles.count)")
+    }
+
+    // Convert UI coordinates (origin at top-left, Y down) to scene coordinates (origin at bottom-left, Y up)
+    private func convertUIToSceneCoordinates(uiPoint: CGPoint) -> CGPoint {
+        // UI coordinates: (0,0) at top-left, Y increases downward
+        // Scene coordinates: (0,0) at bottom-left, Y increases upward
+        // Need to flip the Y coordinate
+        let sceneY = size.height - uiPoint.y
+        return CGPoint(x: uiPoint.x, y: sceneY)
     }
 
     // MARK: - Game Control
