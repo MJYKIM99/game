@@ -10,6 +10,11 @@ class GameScene: SKScene {
     private var enemyProjectiles: [Projectile] = []
     private var powerUps: [PowerUpEntity] = []
 
+    // MARK: - Public Access Methods for Power-ups
+    func addPowerUp(_ powerUp: PowerUpEntity) {
+        powerUps.append(powerUp)
+    }
+
     // Game timing (adjusted for easier difficulty)
     private var lastEnemySpawn: TimeInterval = 0
     private var lastEnemyShot: TimeInterval = 0

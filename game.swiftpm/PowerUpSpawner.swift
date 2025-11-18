@@ -60,7 +60,7 @@ class PowerUpSpawner {
         scene.addChild(powerUp)
 
         // Add to game scene's powerUps array for lifecycle management
-        scene.powerUps.append(powerUp)
+        scene.addPowerUp(powerUp)
 
         print("Spawned \(powerUpType.displayName) at position: \(spawnLocation)")
     }
