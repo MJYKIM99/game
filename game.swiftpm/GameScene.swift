@@ -356,12 +356,16 @@ class GameScene: SKScene {
 // MARK: - Contact Delegate
 extension GameScene: SKPhysicsContactDelegate {
     nonisolated func didBegin(_ contact: SKPhysicsContact) {
+        print("[DEBUG] Contact detected! bodyA.category: \(contact.bodyA.categoryBitMask), bodyB.category: \(contact.bodyB.categoryBitMask)")
+
         let collision = CollisionDetector.checkCollision(contact)
+        print("[DEBUG] Collision detected: \(collision.getCollisionDescription())")
 
         // 在主线程上处理碰撞逻辑
         Task { @MainActor in
             if collision.containsPlayer() && collision.containsEnemyProjectile() {
                 // 玩家被击中
+                print("[DEBUG] Player hit by enemy projectile!")
                 self.player?.takeDamage()
                 collision.enemyProjectile?.removeFromParent()
                 self.enemyProjectiles.removeAll { $0 == collision.enemyProjectile }
@@ -377,6 +381,7 @@ extension GameScene: SKPhysicsContactDelegate {
 
             if collision.containsEnemy() && collision.containsPlayerProjectile() {
                 // 敌人被击中
+                print("[DEBUG] Enemy hit by player projectile! Enemy health before: \(collision.enemy?.health ?? 0)")
                 let damageMultiplier = self.gameManager?.getPlayerDamageMultiplier() ?? 1.0
                 let baseDamage = 20
                 let modifiedDamage = Int(Float(baseDamage) * damageMultiplier)
@@ -385,7 +390,10 @@ extension GameScene: SKPhysicsContactDelegate {
                 collision.playerProjectile?.removeFromParent()
                 self.playerProjectiles.removeAll { $0 == collision.playerProjectile }
 
+                print("[DEBUG] Enemy health after damage: \(collision.enemy?.health ?? 0)")
+
                 if let enemyHealth = collision.enemy?.health, enemyHealth <= 0 {
+                    print("[DEBUG] Enemy destroyed! Removing from scene")
                     collision.enemy?.isAlive = false
                     collision.enemy?.removeFromParent()
                     self.enemies.removeAll { $0 == collision.enemy }
@@ -396,6 +404,7 @@ extension GameScene: SKPhysicsContactDelegate {
 
             if collision.containsPlayer() && collision.containsPowerUp() {
                 // 玩家收集道具
+                print("[DEBUG] Player collected power-up")
                 if let powerUp = collision.powerUp {
                     self.gameManager?.powerUpCollected(powerUp.type)
                     powerUp.collectEffect()

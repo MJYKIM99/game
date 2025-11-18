@@ -84,10 +84,12 @@ class Enemy: SKNode {
     }
 
     private func setupPhysics() {
+        // MUST be dynamic for contact detection to work properly
         let physicsBody = SKPhysicsBody(rectangleOf: CGSize(width: 16, height: 16))
-        physicsBody.isDynamic = false
+        physicsBody.isDynamic = true
         physicsBody.affectedByGravity = false
         physicsBody.allowsRotation = false
+        physicsBody.usesPreciseCollisionDetection = true
         physicsBody.categoryBitMask = PhysicsCategory.enemy
         physicsBody.contactTestBitMask = PhysicsCategory.playerProjectile
         physicsBody.collisionBitMask = PhysicsCategory.none

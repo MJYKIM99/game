@@ -40,15 +40,7 @@ struct GameView: View {
                 .padding(.leading, 30)
                 .padding(.bottom, 30)
                 .allowsHitTesting(true)
-}
-            .simultaneousGesture(
-                DragGesture(minimumDistance: 0)
-                    .onEnded { value in
-                        // 处理触摸射击 - 使用拖动结束的位置
-                        print("[DEBUG] GameView DragGesture.onEnded at: \(value.location)")
-                        gameManager.playerShoot(at: value.location)
-                    }
-            )
+            }
 
             // 游戏结束界面
             if gameManager.isGameOver {
@@ -76,6 +68,14 @@ struct GameView: View {
                 .background(Color.black.opacity(0.7))
             }
         }
+        .simultaneousGesture(
+            DragGesture(minimumDistance: 0)
+                .onEnded { value in
+                    // 处理触摸射击 - 使用拖动结束的位置
+                    print("[DEBUG] GameView DragGesture.onEnded at: \(value.location)")
+                    gameManager.playerShoot(at: value.location)
+                }
+        )
     }
 }
 
