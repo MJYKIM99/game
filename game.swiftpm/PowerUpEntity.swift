@@ -6,6 +6,8 @@ class PowerUpEntity: SKNode {
     // MARK: - Properties
     let type: PowerUpType
     let data: PowerUpData
+    private let creationTime: TimeInterval
+    private let lifetime: TimeInterval = 15.0  // Power-up disappears after 15 seconds
 
     // Visual components
     private var powerUpSprite: SKSpriteNode!
@@ -21,6 +23,7 @@ class PowerUpEntity: SKNode {
     init(type: PowerUpType) {
         self.type = type
         self.data = PowerUpData(type: type)
+        self.creationTime = Date().timeIntervalSince1970
 
         super.init()
 
@@ -32,6 +35,17 @@ class PowerUpEntity: SKNode {
 
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+
+    // MARK: - Lifecycle Check
+    func shouldDisappear(currentTime: TimeInterval) -> Bool {
+        return currentTime - creationTime >= lifetime
+    }
+
+    // MARK: - Time Remaining
+    func timeRemaining(currentTime: TimeInterval) -> TimeInterval {
+        let elapsed = currentTime - creationTime
+        return max(0, lifetime - elapsed)
     }
 
     // MARK: - Setup Methods

@@ -117,6 +117,9 @@ class GameScene: SKScene {
         // 更新道具生成器
         powerUpSpawner?.update(currentTime: currentTime)
 
+        // 检查并更新道具生命周期（过期自动消失）
+        updatePowerUpLifetimes(currentTime: currentTime)
+
         // 更新所有游戏对象
         updateGameObjects()
 
@@ -254,10 +257,13 @@ class GameScene: SKScene {
             }
             return true
         }
+    }
 
-        // 移除超出屏幕范围的道具
+    // Check and remove power-ups that have exceeded their lifetime
+    private func updatePowerUpLifetimes(currentTime: TimeInterval) {
         powerUps = powerUps.filter { powerUp in
-            if !isInBounds(powerUp.position) {
+            if powerUp.shouldDisappear(currentTime: currentTime) {
+                print("[DEBUG] Power-up expired and disappearing: \(powerUp.type.displayName)")
                 powerUp.disappear()
                 return false
             }
