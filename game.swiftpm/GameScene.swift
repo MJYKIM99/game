@@ -128,9 +128,13 @@ class GameScene: SKScene {
         guard let player = player else { return }
 
         let moveSpeed: CGFloat = 4.0
+
+        // Invert Y-axis to match game coordinates (up = negative Y in UI, but we want up = positive in game)
+        // SwiftUI's coordinate system has Y=0 at top, increasing downward
+        // Game typically uses Y=0 at bottom or increases upward for "up" movement
         let newPosition = CGPoint(
             x: player.position.x + joystickDirection.x * moveSpeed,
-            y: player.position.y + joystickDirection.y * moveSpeed
+            y: player.position.y - joystickDirection.y * moveSpeed  // Invert Y to fix direction
         )
 
         // 限制在屏幕范围内

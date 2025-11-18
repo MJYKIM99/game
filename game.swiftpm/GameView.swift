@@ -41,6 +41,10 @@ struct GameView: View {
                 .padding(.bottom, 30)
                 .allowsHitTesting(true)
             }
+            .onTapGesture { location in
+                // 处理触摸射击 - 将本地坐标转换为全局坐标
+                gameManager.playerShoot(at: location)
+            }
 
             // 游戏结束界面
             if gameManager.isGameOver {
