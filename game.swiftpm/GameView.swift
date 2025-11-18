@@ -43,6 +43,7 @@ struct GameView: View {
             }
             .onTapGesture { location in
                 // 处理触摸射击 - 将本地坐标转换为全局坐标
+                print("[DEBUG] GameView onTapGesture triggered at: \(location)")
                 gameManager.playerShoot(at: location)
             }
 

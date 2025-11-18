@@ -10,11 +10,11 @@ class GameScene: SKScene {
     private var enemyProjectiles: [Projectile] = []
     private var powerUps: [PowerUpEntity] = []
 
-    // Game timing
+    // Game timing (adjusted for easier difficulty)
     private var lastEnemySpawn: TimeInterval = 0
     private var lastEnemyShot: TimeInterval = 0
-    private var enemySpawnInterval: TimeInterval = 2.0
-    private var enemyShotInterval: TimeInterval = 1.5
+    private var enemySpawnInterval: TimeInterval = 3.5  // Slower spawn rate initially
+    private var enemyShotInterval: TimeInterval = 2.0  // Slower enemy shooting
 
     // Game state
     private var isGameRunning = false
@@ -151,8 +151,8 @@ class GameScene: SKScene {
             spawnEnemy()
             lastEnemySpawn = currentTime
 
-            // 逐渐增加生成频率（递增难度）
-            enemySpawnInterval = max(0.8, enemySpawnInterval * 0.98)
+            // 逐渐增加生成频率（递增难度）- Made easier (slower difficulty ramp)
+            enemySpawnInterval = max(1.5, enemySpawnInterval * 0.99)  // Minimum 1.5s, slower ramp
         }
     }
 
@@ -191,8 +191,8 @@ class GameScene: SKScene {
             }
             lastEnemyShot = currentTime
 
-            // 逐渐增加射击频率（递增难度）
-            enemyShotInterval = max(0.5, enemyShotInterval * 0.99)
+            // 逐渐增加射击频率（递增难度）- Made easier
+            enemyShotInterval = max(1.0, enemyShotInterval * 0.995)  // Minimum 1.0s, slower ramp
         }
     }
 
@@ -276,7 +276,13 @@ class GameScene: SKScene {
     }
 
     func playerShoot(at targetPoint: CGPoint) {
-        guard let player = player else { return }
+        print("[DEBUG] GameScene.playerShoot called\n  - Target Point: \(targetPoint)")
+        guard let player = player else {
+            print("[DEBUG] Player is nil, cannot shoot")
+            return
+        }
+
+        print("[DEBUG] Player position: \(player.position)")
 
         let projectile = Projectile(isPlayerProjectile: true)
         projectile.position = player.position
@@ -286,9 +292,13 @@ class GameScene: SKScene {
                               y: targetPoint.y - player.position.y)
         let normalizedDirection = direction.normalized()
 
+        print("[DEBUG] Direction vector: \(direction)\n  - Normalized: \(normalizedDirection)")
+
         projectile.setDirection(normalizedDirection)
         addChild(projectile)
         playerProjectiles.append(projectile)
+
+        print("[DEBUG] Projectile created and added! Total player projectiles: \(playerProjectiles.count)")
     }
 
     // MARK: - Game Control

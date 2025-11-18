@@ -8,8 +8,8 @@ class Enemy: SKNode {
     var isAlive: Bool = true
     private var sprite: SKNode
 
-    // 移动属性
-    private var moveSpeed: CGFloat = 1.5
+    // 移动属性 (adjusted for easier difficulty)
+    private var moveSpeed: CGFloat = 1.0  // Slower enemy movement
     private let rotationSpeed: CGFloat = 0.05
 
     // 像素敌机设计

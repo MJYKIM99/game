@@ -10,14 +10,9 @@ struct ContentView: View {
             Color.black.ignoresSafeArea()
 
             if showGame {
-                // Game View
+                // Game View - Touch gesture is handled in GameView.swift
                 GameView()
                     .environmentObject(gameManager)
-                    .onTapGesture { location in
-                        // Convert touch location to game coordinates
-                        // This would need proper coordinate transformation
-                        gameManager.playerShoot(at: location)
-                    }
             } else {
                 // Main Menu
                 MainMenuView(onStartGame: {

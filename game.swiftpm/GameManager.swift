@@ -175,8 +175,13 @@ class GameManager: ObservableObject {
     }
 
     func playerShoot(at targetPoint: CGPoint) {
-        guard isGameRunning && !isPaused && !isGameOver else { return }
+        print("[DEBUG] GameManager.playerShoot called\n  - Target: \(targetPoint)\n  - GameState: running=\(isGameRunning), paused=\(isPaused), gameOver=\(isGameOver)")
+        guard isGameRunning && !isPaused && !isGameOver else {
+            print("[DEBUG] Shoot cancelled - Game not in correct state")
+            return
+        }
 
+        print("[DEBUG] Calling gameScene.playerShoot...")
         gameScene.playerShoot(at: targetPoint)
     }
 
